@@ -1,4 +1,5 @@
 using EntityFramework.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace EntityFramework
 {
@@ -6,8 +7,15 @@ namespace EntityFramework
     {
         public static void Main(string[] args)
         {
-            var host = CreateHostBuilder(args).Build();
-            using (var scope = host.Services.CreateScope())
+            var builder = WebApplication.CreateBuilder(args);
+
+            builder.Services.AddRazorPages();
+
+            var connection = builder.Configuration.GetConnectionString("DefaultConnection");
+            builder.Services.AddDbContext<DrivingDbContext>(options => options.UseSqlServer(connection));
+            var app = builder.Build();
+
+            using (var scope = app.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
                 try
@@ -21,15 +29,24 @@ namespace EntityFramework
                     logger.LogError(ex, "An error occurred while seeding the database.");
                 }
             }
-            host.Run();
-        }
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                });
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseExceptionHandler("/Home/Error");
+            }
+            app.UseStaticFiles();
+
+            app.UseRouting();
+
+            app.UseAuthorization();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapRazorPages();
+            });
+
+            app.Run();
+        }
     }
 }
 
