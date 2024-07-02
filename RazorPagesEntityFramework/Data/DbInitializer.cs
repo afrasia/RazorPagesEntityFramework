@@ -1,4 +1,5 @@
 ﻿using EntityFramework.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace EntityFramework.Data
 {
@@ -6,6 +7,7 @@ namespace EntityFramework.Data
     {
         public static void Initialize(DrivingDbContext context)
         {
+            context.Database.Migrate();
             if (context.Drivers.Any())
             {
                 return;   // DB has been seeded
